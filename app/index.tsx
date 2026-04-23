@@ -1,19 +1,18 @@
-import { View, StyleSheet } from "react-native";
-import { ContenedorClima } from "@/components/contenedores/ContenedorClima";
+import { View, StyleSheet } from 'react-native';
+import { ContenedorClima } from '@/components/contenedores/ContenedorClima';
 
-// Pantalla principal de la app
 export default function Index() {
   return (
-    <View style={styles.container}>
+    <View testID="screen-weather" style={styles.contenedorPrincipal}>
       <ContenedorClima />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  contenedorPrincipal: {
     flex: 1,
-    backgroundColor: "#eaeef2",
-    justifyContent: "center",
+    backgroundColor: '#0F172A',
+    justifyContent: 'center',
   },
 });

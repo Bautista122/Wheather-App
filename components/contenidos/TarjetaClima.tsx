@@ -1,11 +1,9 @@
 import { View, Text, StyleSheet, Dimensions } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { IndicadorClima } from './IndicadorCima';
+import { IndicadorClima } from './IndicadorClima';
 
-// Obtenemos el ancho de la pantalla para que cada tarjeta ocupe toda la pantalla
 const { width } = Dimensions.get('window');
 
-// Datos que recibe la tarjeta
 type Props = {
   dia: string;
   temperatura: number;
@@ -17,7 +15,6 @@ type Props = {
   icono: any;
 };
 
-// Este componente representa UNA tarjeta completa del clima
 export function TarjetaClima({
   dia,
   temperatura,
@@ -29,76 +26,64 @@ export function TarjetaClima({
   icono,
 }: Props) {
   return (
-    <View style={styles.tarjeta}>
-      {/* Día */}
-      <Text style={styles.dia}>{dia}</Text>
+    <View style={styles.contenedorFlotante}>
+      {/* 3. Navegación actual */}
+      <Text testID="navigation-current-day" style={styles.textoDia}>
+        {dia}
+      </Text>
 
-      {/* Ciudad */}
-      <Text style={styles.ciudad}>TOKYO</Text>
+      {/* 2. Encabezado Ciudad */}
+      <Text testID="header-city" style={styles.textoCiudad}>
+        TOKIO
+      </Text>
 
-      {/* Icono del clima */}
-      <Ionicons name={icono} size={120} color="black" style={styles.icono} />
+      {/* 4. Ícono climático */}
+      <View
+        testID={`icon-weather-${icono}`}
+        accessibilityRole="image"
+        style={styles.contenedorIcono}>
+        <Ionicons name={icono} size={160} color="#FFFFFF" />
+      </View>
 
-      {/* Métricas secundarias */}
-      <View style={styles.metricas}>
+      {/* 5. Métricas secundarias (Aquí se pasan los datos al componente hijo) */}
+      <View style={styles.filaMetricas}>
         <IndicadorClima icono="water" valor={`${humedad}%`} />
         <IndicadorClima icono="speedometer" valor={`${presion} hPa`} />
         <IndicadorClima icono="flag" valor={`${viento} m/s`} />
       </View>
 
-      {/* Temperatura principal */}
-      <Text style={styles.temperatura}>{temperatura}°</Text>
+      {/* 6. Temperatura Principal */}
+      <Text testID="temp-current" style={styles.temperaturaGrande}>
+        {temperatura}°
+      </Text>
 
-      {/* Temperaturas mínima y máxima */}
-      <View style={styles.minMax}>
-        <Text style={styles.min}>{minima}°</Text>
-        <Text style={styles.max}>{maxima}°</Text>
+      {/* 7. Temperaturas mín y máx */}
+      <View style={styles.contenedorMinMax}>
+        <Text testID="temp-min" style={styles.textoMin}>
+          {minima}°
+        </Text>
+        <Text testID="temp-max" style={styles.textoMax}>
+          {maxima}°
+        </Text>
       </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  tarjeta: {
-    width: width,
-    alignItems: 'center',
-    justifyContent: 'center',
+  contenedorFlotante: { width, alignItems: 'center', justifyContent: 'center', padding: 20 },
+  textoDia: { fontSize: 16, color: '#94A3B8', fontWeight: '700', textTransform: 'uppercase' },
+  textoCiudad: {
+    fontSize: 32,
+    fontWeight: '900',
+    color: '#F8FAFC',
+    letterSpacing: 6,
+    marginVertical: 10,
   },
-  dia: {
-    position: 'absolute',
-    top: 50,
-    fontSize: 12,
-    color: '#888',
-  },
-  ciudad: {
-    marginTop: 80,
-    fontSize: 22,
-    fontWeight: 'bold',
-    letterSpacing: 2,
-  },
-  icono: {
-    marginVertical: 30,
-  },
-  metricas: {
-    flexDirection: 'row',
-    gap: 15,
-    marginBottom: 10,
-  },
-  temperatura: {
-    fontSize: 64,
-    fontWeight: 'bold',
-  },
-  minMax: {
-    flexDirection: 'row',
-    gap: 20,
-    marginTop: 10,
-  },
-  min: {
-    fontSize: 14,
-    color: '#666',
-  },
-  max: {
-    fontSize: 14,
-    color: '#000',
-  },
+  contenedorIcono: { marginVertical: 35 },
+  filaMetricas: { flexDirection: 'row', gap: 12, marginBottom: 40 },
+  temperaturaGrande: { fontSize: 120, fontWeight: '100', color: '#F8FAFC' },
+  contenedorMinMax: { flexDirection: 'row', gap: 35 },
+  textoMin: { fontSize: 20, color: '#94A3B8' },
+  textoMax: { fontSize: 20, color: '#F8FAFC', fontWeight: 'bold' },
 });
