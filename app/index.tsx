@@ -3,16 +3,15 @@ import { ContenedorClima } from '@/components/contenedores/ContenedorClima';
 
 export default function Index() {
   return (
-    <View testID="screen-weather" style={styles.contenedorPrincipal}>
+    <View testID="screen-weather" style={styles.container}>
       <ContenedorClima />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  contenedorPrincipal: {
+  container: {
     flex: 1,
-    backgroundColor: '#0F172A',
-    justifyContent: 'center',
+    backgroundColor: 'white',
   },
 });

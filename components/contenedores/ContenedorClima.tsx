@@ -1,6 +1,6 @@
+// components/contenedores/ContenedorClima.tsx
 import React, { useRef, useState } from 'react';
-import { ScrollView, View, TouchableOpacity, StyleSheet, Dimensions } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { ScrollView, View, TouchableOpacity, StyleSheet, Dimensions, Text } from 'react-native';
 import { TarjetaClima } from '../contenidos/TarjetaClima';
 
 const { width } = Dimensions.get('window');
@@ -49,34 +49,43 @@ export function ContenedorClima() {
   };
 
   return (
-    <View style={{ flex: 1 }}>
+    <View style={{ flex: 1, backgroundColor: 'white' }}>
       <ScrollView
         ref={scrollRef}
         horizontal
         pagingEnabled
-        scrollEnabled={true}
+        scrollEnabled={false} // Forzamos navegación por botones
         showsHorizontalScrollIndicator={false}>
         {datosClima.map((item, index) => (
           <TarjetaClima key={index} {...item} />
         ))}
       </ScrollView>
 
-      {/* 3. Botones de Navegación Obligatorios */}
-      <View style={styles.capaBotones}>
+      {/* 3. Navegación superior (Fecha y flechas) */}
+      <View style={styles.capaNavegacion}>
+        {/* Flecha izquierda */}
         <TouchableOpacity
           testID="button-prev-day"
           onPress={() => navegar(-1)}
-          style={[styles.boton, pagina === 0 && { opacity: 0 }]}
-          disabled={pagina === 0}>
-          <Ionicons name="chevron-back" size={30} color="white" />
+          disabled={pagina === 0}
+          style={styles.botonNav}>
+          <Text style={[styles.flecha, pagina === 0 && { color: '#EEE' }]}>‹</Text>
         </TouchableOpacity>
 
+        {/* Fecha central */}
+        <Text testID="navigation-current-day" style={styles.textoFecha}>
+          {datosClima[pagina].dia}
+        </Text>
+
+        {/* Flecha derecha */}
         <TouchableOpacity
           testID="button-next-day"
           onPress={() => navegar(1)}
-          style={[styles.boton, pagina === datosClima.length - 1 && { opacity: 0 }]}
-          disabled={pagina === datosClima.length - 1}>
-          <Ionicons name="chevron-forward" size={30} color="white" />
+          disabled={pagina === datosClima.length - 1}
+          style={styles.botonNav}>
+          <Text style={[styles.flecha, pagina === datosClima.length - 1 && { color: '#EEE' }]}>
+            ›
+          </Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -84,14 +93,27 @@ export function ContenedorClima() {
 }
 
 const styles = StyleSheet.create({
-  capaBotones: {
+  capaNavegacion: {
     position: 'absolute',
-    top: 80,
+    top: 45, // Fecha más arriba como pediste
     width: '100%',
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingHorizontal: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
     zIndex: 10,
   },
-  boton: { backgroundColor: 'rgba(255, 255, 255, 0.15)', padding: 10, borderRadius: 25 },
+  botonNav: {
+    paddingHorizontal: 15,
+  },
+  flecha: {
+    fontSize: 26,
+    color: '#CCC', // Color suave para flechas
+    fontWeight: '300',
+  },
+  textoFecha: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: 'black',
+    marginHorizontal: 20,
+  },
 });

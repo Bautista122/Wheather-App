@@ -1,16 +1,18 @@
+// components/contenidos/IndicadorClima.tsx
+import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
 type Props = {
-  icono: any;
+  icono: keyof typeof Ionicons.glyphMap;
   valor: string;
 };
 
 export function IndicadorClima({ icono, valor }: Props) {
   return (
-    <View testID="metric-item" style={styles.pildora}>
-      <Ionicons testID="metric-icon" name={icono} size={18} color="#FFFFFF" />
-      <Text testID="metric-value" style={styles.valorTexto}>
+    <View testID="metric-item" style={styles.container}>
+      <Ionicons testID="metric-icon" name={icono} size={18} color="black" />
+      <Text testID="metric-value" style={styles.texto}>
         {valor}
       </Text>
     </View>
@@ -18,18 +20,14 @@ export function IndicadorClima({ icono, valor }: Props) {
 }
 
 const styles = StyleSheet.create({
-  pildora: {
+  container: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
-    paddingHorizontal: 15,
-    paddingVertical: 8,
-    borderRadius: 25,
-    gap: 6,
+    gap: 12,
   },
-  valorTexto: {
+  texto: {
     fontSize: 14,
-    color: '#FFFFFF',
     fontWeight: '600',
+    color: 'black',
   },
 });
