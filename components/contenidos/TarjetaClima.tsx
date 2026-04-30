@@ -1,12 +1,11 @@
-// components/contenidos/TarjetaClima.tsx
 import React from 'react';
 import { View, Text, StyleSheet, Dimensions } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { IndicadorClima } from './IndicadorClima';
 
-const { width, height } = Dimensions.get('window');
+const { width: ANCHO_VENTANA, height: ALTO_VENTANA } = Dimensions.get('window');
 
-type Props = {
+interface PropiedadesTarjeta {
   dia: string;
   temperatura: number;
   minima: number;
@@ -15,41 +14,31 @@ type Props = {
   presion: number;
   viento: number;
   icono: string;
-};
+}
 
-// Mapa de íconos personalizados para imitar el diseño técnico de image_7.png
-const IconoGeometrico = ({ name }: { name: string }) => {
-  switch (name) {
+const SelectorIcono = ({ tipo }: { tipo: string }) => {
+  const tamanioBase = ALTO_VENTANA * 0.2;
+
+  switch (tipo) {
     case 'sunny':
-      // Un círculo simple y grueso (Ionicon radio-button-off)
-      return (
-        <Ionicons
-          name="radio-button-off"
-          size={height * 0.22}
-          color="black"
-          style={styles.strokePesado}
-        />
-      );
+      return <Ionicons name="radio-button-off" size={tamanioBase * 1.1} color="black" />;
     case 'rainy':
-      // Barras inclinadas (imitando reorder-four con rotación)
       return (
         <Ionicons
           name="reorder-four"
-          size={height * 0.2}
+          size={tamanioBase}
           color="black"
           style={{ transform: [{ rotate: '-45deg' }] }}
         />
       );
     case 'cloudy':
-      // Formas de nubes abstractas (nubes personalizadas con Ionicon infinite-outline)
-      return <Ionicons name="infinite-outline" size={height * 0.2} color="black" />;
+      return <Ionicons name="cloud-outline" size={tamanioBase} color="black" />;
     default:
-      return <Ionicons name="help" size={height * 0.18} color="black" />;
+      return <Ionicons name="help" size={tamanioBase * 0.9} color="black" />;
   }
 };
 
 export function TarjetaClima({
-  dia,
   temperatura,
   minima,
   maxima,
@@ -57,100 +46,88 @@ export function TarjetaClima({
   presion,
   viento,
   icono,
-}: Props) {
+}: PropiedadesTarjeta) {
   return (
-    <View style={styles.tarjeta}>
-      {/* 2. Ciudad */}
-      <Text testID="header-city" style={styles.ciudad}>
-        TOKIO
-      </Text>
+    <View style={estilos.tarjeta}>
+      <Text style={estilos.etiquetaCiudad}>BUENOS AIRES</Text>
 
-      {/* 4. Ícono Climático (Glifos técnicos negros) */}
-      <View
-        testID={`icon-weather-${icono}`}
-        accessibilityRole="image"
-        style={styles.contenedorIcono}>
-        <IconoGeometrico name={icono} />
+      <View style={estilos.contenedorVisual}>
+        <SelectorIcono tipo={icono} />
       </View>
 
-      {/* 5. Métricas (Iconos negros y texto alineado) */}
-      <View style={styles.columnaMetricas}>
+      <View style={estilos.contenedorMetricas}>
         <IndicadorClima icono="water-outline" valor={`${humedad}%`} />
         <IndicadorClima icono="speedometer-outline" valor={`${presion} hPa`} />
         <IndicadorClima icono="flag-outline" valor={`${viento} m/s`} />
       </View>
 
-      {/* 6. Temperatura Principal (Enorme y bold) */}
-      <Text testID="temp-current" style={styles.temperatura}>
-        {temperatura}°
-      </Text>
+      <Text style={estilos.textoTemperatura}>{temperatura}°</Text>
 
-      {/* 7. Línea de tiempo y Rango Mín/Máx */}
-      <View style={styles.footer}>
-        <View style={styles.tempFila}>
-          <Text testID="temp-min" style={styles.tempSecundaria}>
-            {minima}°
-          </Text>
-          <Text style={styles.nowLabel}>NOW</Text>
-          <Text testID="temp-max" style={styles.tempSecundaria}>
-            {maxima}°
-          </Text>
+      <View style={estilos.seccionInferior}>
+        <View style={estilos.filaTemperaturas}>
+          <Text style={estilos.valorExtremo}>{minima}°</Text>
+          <Text style={estilos.etiquetaAhora}>AHORA</Text>
+          <Text style={estilos.valorExtremo}>{maxima}°</Text>
         </View>
-        <View style={styles.lineaH} />
+        <View style={estilos.separadorHorizontal} />
       </View>
     </View>
   );
 }
 
-const styles = StyleSheet.create({
+const estilos = StyleSheet.create({
   tarjeta: {
-    width: width,
+    width: ANCHO_VENTANA,
     backgroundColor: 'white',
     alignItems: 'center',
-    paddingTop: height * 0.08, // Desplazamos la ciudad hacia abajo
+    paddingTop: 120,
   },
-  ciudad: {
-    fontSize: 40,
+  etiquetaCiudad: {
+    fontSize: 32,
     fontWeight: '900',
     color: 'black',
-    letterSpacing: 3,
-    marginBottom: 10,
+    letterSpacing: 4,
+    marginBottom: 20,
+    textAlign: 'center',
   },
-  contenedorIcono: {
-    height: height * 0.3, // Contenedor grande para el ícono
+  contenedorVisual: {
+    height: ALTO_VENTANA * 0.3,
     justifyContent: 'center',
     alignItems: 'center',
   },
-  strokePesado: {
-    // Para Ionicon radio-button-off, aumentamos el grosor visual
-    fontWeight: 'bold',
-  },
-  columnaMetricas: {
+  contenedorMetricas: {
     alignSelf: 'flex-start',
     marginLeft: 50,
     gap: 8,
     marginVertical: 10,
   },
-  temperatura: {
+  textoTemperatura: {
     fontSize: 100,
     fontWeight: '900',
     color: 'black',
     marginTop: 10,
   },
-  footer: {
+  seccionInferior: {
     width: '80%',
     alignItems: 'center',
     marginTop: 15,
   },
-  tempFila: {
+  filaTemperaturas: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     width: '100%',
     alignItems: 'center',
   },
-  tempSecundaria: { fontSize: 24, fontWeight: 'bold' },
-  nowLabel: { fontSize: 12, fontWeight: '900', letterSpacing: 2 },
-  lineaH: {
+  valorExtremo: {
+    fontSize: 24,
+    fontWeight: 'bold',
+  },
+  etiquetaAhora: {
+    fontSize: 12,
+    fontWeight: '900',
+    letterSpacing: 2,
+  },
+  separadorHorizontal: {
     width: '100%',
     height: 3,
     backgroundColor: 'black',

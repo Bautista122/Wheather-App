@@ -1,11 +1,18 @@
-// components/contenedores/ContenedorClima.tsx
-import React, { useRef, useState } from 'react';
-import { ScrollView, View, TouchableOpacity, StyleSheet, Dimensions, Text } from 'react-native';
+import React, { useRef, useState, useEffect } from 'react';
+import {
+  ScrollView,
+  View,
+  TouchableOpacity,
+  StyleSheet,
+  Dimensions,
+  Text,
+  ActivityIndicator,
+} from 'react-native';
 import { TarjetaClima } from '../contenidos/TarjetaClima';
 
-const { width } = Dimensions.get('window');
+const { width: ANCHO_PANTALLA } = Dimensions.get('window');
 
-const datosClima = [
+const DATOS_RESPALDO = [
   {
     dia: '4/21',
     temperatura: 25,
@@ -28,92 +35,134 @@ const datosClima = [
   },
   {
     dia: '4/23',
-    temperatura: 16,
-    minima: 13,
-    maxima: 21,
-    humedad: 78,
-    presion: 1016,
-    viento: 2.3,
+    temperatura: 18,
+    minima: 14,
+    maxima: 20,
+    humedad: 70,
+    presion: 1012,
+    viento: 1.5,
     icono: 'cloudy',
   },
 ];
 
 export function ContenedorClima() {
-  const scrollRef = useRef<ScrollView>(null);
-  const [pagina, setPagina] = useState(0);
+  const referenciaScroll = useRef<ScrollView>(null);
+  const [indicePagina, setIndicePagina] = useState(0);
+  const [datosClima, setDatosClima] = useState<any[]>(DATOS_RESPALDO);
+  const [estaCargando, setEstaCargando] = useState(true);
 
-  const navegar = (direccion: number) => {
-    const nuevaPagina = Math.max(0, Math.min(datosClima.length - 1, pagina + direccion));
-    scrollRef.current?.scrollTo({ x: nuevaPagina * width, animated: true });
-    setPagina(nuevaPagina);
+  const CLAVE_API = 'e5a96edd3802433e97f194410263004';
+  const LATITUD = '-34.6131';
+  const LONGITUD = '-58.3772';
+
+  const determinarIcono = (climaPrincipal: string) => {
+    const clima = climaPrincipal.toLowerCase();
+    if (clima.includes('cloud')) return 'cloudy';
+    if (clima.includes('rain')) return 'rainy';
+    return 'sunny';
   };
 
+  const obtenerClimaActual = async () => {
+    try {
+      const url = `https://api.openweathermap.org/data/2.5/weather?lat=${LATITUD}&lon=${LONGITUD}&appid=${CLAVE_API}&units=metric&lang=es`;
+      const respuesta = await fetch(url);
+      const datos = await respuesta.json();
+
+      if (respuesta.ok) {
+        const nuevoClimaHoy = {
+          dia: 'HOY',
+          temperatura: Math.round(datos.main.temp),
+          minima: Math.round(datos.main.temp_min),
+          maxima: Math.round(datos.main.temp_max),
+          humedad: datos.main.humidity,
+          presion: datos.main.pressure,
+          viento: datos.wind.speed,
+          icono: determinarIcono(datos.weather[0].main),
+        };
+        setDatosClima([nuevoClimaHoy, DATOS_RESPALDO[1], DATOS_RESPALDO[2]]);
+      }
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setEstaCargando(false);
+    }
+  };
+
+  useEffect(() => {
+    obtenerClimaActual();
+  }, []);
+
+  const manejarNavegacion = (direccion: number) => {
+    const siguientePagina = Math.max(0, Math.min(datosClima.length - 1, indicePagina + direccion));
+    referenciaScroll.current?.scrollTo({ x: siguientePagina * ANCHO_PANTALLA, animated: true });
+    setIndicePagina(siguientePagina);
+  };
+
+  if (estaCargando)
+    return <ActivityIndicator size="large" color="black" style={estilos.cargando} />;
+
   return (
-    <View style={{ flex: 1, backgroundColor: 'white' }}>
+    <View style={estilos.contenedorPrincipal}>
       <ScrollView
-        ref={scrollRef}
+        ref={referenciaScroll}
         horizontal
         pagingEnabled
-        scrollEnabled={false} // Forzamos navegación por botones
+        scrollEnabled={false}
         showsHorizontalScrollIndicator={false}>
         {datosClima.map((item, index) => (
           <TarjetaClima key={index} {...item} />
         ))}
       </ScrollView>
 
-      {/* 3. Navegación superior (Fecha y flechas) */}
-      <View style={styles.capaNavegacion}>
-        {/* Flecha izquierda */}
+      <View style={estilos.capaNavegacion}>
         <TouchableOpacity
-          testID="button-prev-day"
-          onPress={() => navegar(-1)}
-          disabled={pagina === 0}
-          style={styles.botonNav}>
-          <Text style={[styles.flecha, pagina === 0 && { color: '#EEE' }]}>‹</Text>
+          onPress={() => manejarNavegacion(-1)}
+          disabled={indicePagina === 0}
+          style={estilos.botonNav}>
+          {indicePagina > 0 && (
+            <>
+              <Text style={estilos.flecha}>‹</Text>
+              <Text style={estilos.textoFechaLateral}>{datosClima[indicePagina - 1].dia}</Text>
+            </>
+          )}
         </TouchableOpacity>
 
-        {/* Fecha central */}
-        <Text testID="navigation-current-day" style={styles.textoFecha}>
-          {datosClima[pagina].dia}
-        </Text>
+        <View style={estilos.bloqueCentral}>
+          <Text style={estilos.textoFechaPrincipal}>{datosClima[indicePagina]?.dia || ''}</Text>
+        </View>
 
-        {/* Flecha derecha */}
         <TouchableOpacity
-          testID="button-next-day"
-          onPress={() => navegar(1)}
-          disabled={pagina === datosClima.length - 1}
-          style={styles.botonNav}>
-          <Text style={[styles.flecha, pagina === datosClima.length - 1 && { color: '#EEE' }]}>
-            ›
-          </Text>
+          onPress={() => manejarNavegacion(1)}
+          disabled={indicePagina === datosClima.length - 1}
+          style={estilos.botonNav}>
+          {indicePagina < datosClima.length - 1 && (
+            <>
+              <Text style={estilos.textoFechaLateral}>{datosClima[indicePagina + 1].dia}</Text>
+              <Text style={estilos.flecha}>›</Text>
+            </>
+          )}
         </TouchableOpacity>
       </View>
     </View>
   );
 }
 
-const styles = StyleSheet.create({
+const estilos = StyleSheet.create({
+  contenedorPrincipal: { flex: 1, backgroundColor: 'white' },
+  cargando: { flex: 1, justifyContent: 'center' },
   capaNavegacion: {
     position: 'absolute',
-    top: 45, // Fecha más arriba como pediste
+    top: 50,
     width: '100%',
     flexDirection: 'row',
-    justifyContent: 'center',
+    justifyContent: 'space-between',
     alignItems: 'center',
+    paddingHorizontal: 20,
     zIndex: 10,
   },
-  botonNav: {
-    paddingHorizontal: 15,
-  },
-  flecha: {
-    fontSize: 26,
-    color: '#CCC', // Color suave para flechas
-    fontWeight: '300',
-  },
-  textoFecha: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: 'black',
-    marginHorizontal: 20,
-  },
+  botonNav: { flexDirection: 'row', alignItems: 'center', width: 80, height: 40 },
+  bloqueCentral: { alignItems: 'center' },
+  flecha: { fontSize: 24, color: '#CCC', marginHorizontal: 5 },
+  textoFechaLateral: { fontSize: 12, color: '#CCC', fontWeight: '600' },
+  textoFechaPrincipal: { fontSize: 16, fontWeight: '900', color: 'black' },
 });

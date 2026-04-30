@@ -1,31 +1,30 @@
-// components/contenidos/IndicadorClima.tsx
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
-type Props = {
+interface PropiedadesIndicador {
   icono: keyof typeof Ionicons.glyphMap;
   valor: string;
-};
+}
 
-export function IndicadorClima({ icono, valor }: Props) {
+export function IndicadorClima({ icono, valor }: PropiedadesIndicador) {
   return (
-    <View testID="metric-item" style={styles.container}>
-      <Ionicons testID="metric-icon" name={icono} size={18} color="black" />
-      <Text testID="metric-value" style={styles.texto}>
+    <View testID="item-metrica" style={estilos.contenedorIndicador}>
+      <Ionicons testID="icono-metrica" name={icono} size={18} color="black" />
+      <Text testID="valor-metrica" style={estilos.textoValor}>
         {valor}
       </Text>
     </View>
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
+const estilos = StyleSheet.create({
+  contenedorIndicador: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
   },
-  texto: {
+  textoValor: {
     fontSize: 14,
     fontWeight: '600',
     color: 'black',
