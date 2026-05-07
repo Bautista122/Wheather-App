@@ -7,6 +7,7 @@ const { width: ANCHO_VENTANA, height: ALTO_VENTANA } = Dimensions.get('window');
 
 interface PropiedadesTarjeta {
   dia: string;
+  ciudad?: string;
   temperatura: number;
   minima: number;
   maxima: number;
@@ -18,7 +19,6 @@ interface PropiedadesTarjeta {
 
 const SelectorIcono = ({ tipo }: { tipo: string }) => {
   const tamanioBase = ALTO_VENTANA * 0.2;
-
   switch (tipo) {
     case 'sunny':
       return <Ionicons name="radio-button-off" size={tamanioBase * 1.1} color="black" />;
@@ -39,6 +39,7 @@ const SelectorIcono = ({ tipo }: { tipo: string }) => {
 };
 
 export function TarjetaClima({
+  ciudad,
   temperatura,
   minima,
   maxima,
@@ -49,7 +50,7 @@ export function TarjetaClima({
 }: PropiedadesTarjeta) {
   return (
     <View style={estilos.tarjeta}>
-      <Text style={estilos.etiquetaCiudad}>BUENOS AIRES</Text>
+      <Text style={estilos.etiquetaCiudad}>{ciudad || 'CARGANDO...'}</Text>
 
       <View style={estilos.contenedorVisual}>
         <SelectorIcono tipo={icono} />
@@ -83,54 +84,25 @@ const estilos = StyleSheet.create({
     paddingTop: 120,
   },
   etiquetaCiudad: {
-    fontSize: 32,
+    fontSize: 24,
     fontWeight: '900',
     color: 'black',
-    letterSpacing: 4,
+    letterSpacing: 2,
     marginBottom: 20,
     textAlign: 'center',
+    paddingHorizontal: 20,
   },
-  contenedorVisual: {
-    height: ALTO_VENTANA * 0.3,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  contenedorMetricas: {
-    alignSelf: 'flex-start',
-    marginLeft: 50,
-    gap: 8,
-    marginVertical: 10,
-  },
-  textoTemperatura: {
-    fontSize: 100,
-    fontWeight: '900',
-    color: 'black',
-    marginTop: 10,
-  },
-  seccionInferior: {
-    width: '80%',
-    alignItems: 'center',
-    marginTop: 15,
-  },
+  contenedorVisual: { height: ALTO_VENTANA * 0.3, justifyContent: 'center', alignItems: 'center' },
+  contenedorMetricas: { alignSelf: 'flex-start', marginLeft: 50, gap: 8, marginVertical: 10 },
+  textoTemperatura: { fontSize: 100, fontWeight: '900', color: 'black', marginTop: 10 },
+  seccionInferior: { width: '80%', alignItems: 'center', marginTop: 15 },
   filaTemperaturas: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     width: '100%',
     alignItems: 'center',
   },
-  valorExtremo: {
-    fontSize: 24,
-    fontWeight: 'bold',
-  },
-  etiquetaAhora: {
-    fontSize: 12,
-    fontWeight: '900',
-    letterSpacing: 2,
-  },
-  separadorHorizontal: {
-    width: '100%',
-    height: 3,
-    backgroundColor: 'black',
-    marginTop: 15,
-  },
+  valorExtremo: { fontSize: 24, fontWeight: 'bold' },
+  etiquetaAhora: { fontSize: 12, fontWeight: '900', letterSpacing: 2 },
+  separadorHorizontal: { width: '100%', height: 3, backgroundColor: 'black', marginTop: 15 },
 });

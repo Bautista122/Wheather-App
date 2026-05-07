@@ -8,23 +8,26 @@ import {
   Text,
   ActivityIndicator,
 } from 'react-native';
+import * as Location from 'expo-location';
 import { TarjetaClima } from '../contenidos/TarjetaClima';
 
 const { width: ANCHO_PANTALLA } = Dimensions.get('window');
 
 const DATOS_RESPALDO = [
   {
-    dia: '4/21',
-    temperatura: 25,
-    minima: 21,
-    maxima: 26,
-    humedad: 58,
-    presion: 1006,
-    viento: 0.8,
+    dia: 'HOY',
+    ciudad: 'CARGANDO...',
+    temperatura: 0,
+    minima: 0,
+    maxima: 0,
+    humedad: 0,
+    presion: 0,
+    viento: 0,
     icono: 'sunny',
   },
   {
     dia: '4/22',
+    ciudad: 'CABA',
     temperatura: 21,
     minima: 16,
     maxima: 25,
@@ -35,6 +38,7 @@ const DATOS_RESPALDO = [
   },
   {
     dia: '4/23',
+    ciudad: 'CABA',
     temperatura: 18,
     minima: 14,
     maxima: 20,
@@ -51,45 +55,74 @@ export function ContenedorClima() {
   const [datosClima, setDatosClima] = useState<any[]>(DATOS_RESPALDO);
   const [estaCargando, setEstaCargando] = useState(true);
 
+  // USAMOS TU CLAVE DE WEATHERAPI (la que pasaste al principio)
   const CLAVE_API = 'e5a96edd3802433e97f194410263004';
-  const LATITUD = '-34.6131';
-  const LONGITUD = '-58.3772';
 
-  const determinarIcono = (climaPrincipal: string) => {
-    const clima = climaPrincipal.toLowerCase();
-    if (clima.includes('cloud')) return 'cloudy';
-    if (clima.includes('rain')) return 'rainy';
+  const determinarIcono = (condicion: string) => {
+    const clima = condicion.toLowerCase();
+    if (clima.includes('cloud') || clima.includes('nublado') || clima.includes('nubes'))
+      return 'cloudy';
+    if (clima.includes('rain') || clima.includes('lluvia') || clima.includes('llovizna'))
+      return 'rainy';
     return 'sunny';
   };
 
-  const obtenerClimaActual = async () => {
+  const obtenerClimaActual = async (lat: number, lon: number) => {
     try {
-      const url = `https://api.openweathermap.org/data/2.5/weather?lat=${LATITUD}&lon=${LONGITUD}&appid=${CLAVE_API}&units=metric&lang=es`;
+      // CAMBIAMOS LA URL A WEATHERAPI QUE ES LA QUE COINCIDE CON TU CLAVE
+      const url = `https://api.weatherapi.com/v1/forecast.json?key=${CLAVE_API}&q=${lat},${lon}&days=3&lang=es`;
+
       const respuesta = await fetch(url);
       const datos = await respuesta.json();
 
       if (respuesta.ok) {
+        const nombreLugar = datos.location.name.toUpperCase();
+
         const nuevoClimaHoy = {
           dia: 'HOY',
-          temperatura: Math.round(datos.main.temp),
-          minima: Math.round(datos.main.temp_min),
-          maxima: Math.round(datos.main.temp_max),
-          humedad: datos.main.humidity,
-          presion: datos.main.pressure,
-          viento: datos.wind.speed,
-          icono: determinarIcono(datos.weather[0].main),
+          ciudad: nombreLugar,
+          temperatura: Math.round(datos.current.temp_c),
+          minima: Math.round(datos.forecast.forecastday[0].day.mintemp_c),
+          maxima: Math.round(datos.forecast.forecastday[0].day.maxtemp_c),
+          humedad: datos.current.humidity,
+          presion: datos.current.pressure_mb,
+          viento: datos.current.wind_kph,
+          icono: determinarIcono(datos.current.condition.text),
         };
-        setDatosClima([nuevoClimaHoy, DATOS_RESPALDO[1], DATOS_RESPALDO[2]]);
+
+        setDatosClima([
+          nuevoClimaHoy,
+          { ...DATOS_RESPALDO[1], ciudad: nombreLugar },
+          { ...DATOS_RESPALDO[2], ciudad: nombreLugar },
+        ]);
+      } else {
+        console.log('Error de API:', datos.error?.message);
       }
     } catch (error) {
-      console.error(error);
+      console.error('Error de red:', error);
     } finally {
       setEstaCargando(false);
     }
   };
 
   useEffect(() => {
-    obtenerClimaActual();
+    (async () => {
+      try {
+        let { status } = await Location.requestForegroundPermissionsAsync();
+        if (status !== 'granted') {
+          await obtenerClimaActual(-34.6131, -58.3772);
+          return;
+        }
+
+        let ubicacion = await Location.getCurrentPositionAsync({
+          accuracy: Location.Accuracy.Balanced,
+        });
+
+        await obtenerClimaActual(ubicacion.coords.latitude, ubicacion.coords.longitude);
+      } catch (err) {
+        await obtenerClimaActual(-34.6131, -58.3772);
+      }
+    })();
   }, []);
 
   const manejarNavegacion = (direccion: number) => {
@@ -98,8 +131,13 @@ export function ContenedorClima() {
     setIndicePagina(siguientePagina);
   };
 
-  if (estaCargando)
-    return <ActivityIndicator size="large" color="black" style={estilos.cargando} />;
+  if (estaCargando) {
+    return (
+      <View style={estilos.cargando}>
+        <ActivityIndicator size="large" color="black" />
+      </View>
+    );
+  }
 
   return (
     <View style={estilos.contenedorPrincipal}>
@@ -122,7 +160,7 @@ export function ContenedorClima() {
           {indicePagina > 0 && (
             <>
               <Text style={estilos.flecha}>‹</Text>
-              <Text style={estilos.textoFechaLateral}>{datosClima[indicePagina - 1].dia}</Text>
+              <Text style={estilos.textoFechaLateral}>{datosClima[indicePagina - 1]?.dia}</Text>
             </>
           )}
         </TouchableOpacity>
@@ -137,7 +175,7 @@ export function ContenedorClima() {
           style={estilos.botonNav}>
           {indicePagina < datosClima.length - 1 && (
             <>
-              <Text style={estilos.textoFechaLateral}>{datosClima[indicePagina + 1].dia}</Text>
+              <Text style={estilos.textoFechaLateral}>{datosClima[indicePagina + 1]?.dia}</Text>
               <Text style={estilos.flecha}>›</Text>
             </>
           )}
@@ -149,7 +187,7 @@ export function ContenedorClima() {
 
 const estilos = StyleSheet.create({
   contenedorPrincipal: { flex: 1, backgroundColor: 'white' },
-  cargando: { flex: 1, justifyContent: 'center' },
+  cargando: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: 'white' },
   capaNavegacion: {
     position: 'absolute',
     top: 50,
